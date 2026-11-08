@@ -145,3 +145,70 @@ test('deck: many misses still end with one star', () => {
   assert.strictEqual(deck.stars, 1);
   assert.ok(deck.done);
 });
+
+test('there are three worlds of three levels', () => {
+  assert.strictEqual(L.WORLDS.length, 3);
+  assert.strictEqual(L.LEVELS.length, 9);
+  L.WORLDS.forEach((w, i) => assert.strictEqual(L.LEVELS.filter((l) => l.world === i).length, 3));
+});
+
+test('every kind named by a level exists', () => {
+  L.LEVELS.forEach((l) => l.kinds.forEach((k) => assert.ok(E.KINDS[k], k)));
+});
+
+test('duration options are positive, different and contain the answer once', () => {
+  forEachTask((task, level, seed) => {
+    if (task.answerType !== 'duration' || task.mode !== 'choice') return;
+    const values = task.options.map((o) => o.value);
+    assert.ok(values.every((v) => v > 0), where(task, seed));
+    assert.strictEqual(new Set(values).size, 4, where(task, seed));
+    assert.ok(values.includes(task.answer), where(task, seed));
+  });
+});
+
+test('intervals agree with their clocks', () => {
+  forEachTask((task, level, seed) => {
+    if (task.kind !== 'elapsedPair') return;
+    assert.strictEqual(T.diff(task.show[0].t, task.show[1].t), task.answer, where(task, seed));
+  });
+});
+
+test('timelines can reach the end with the available jumps', () => {
+  forEachTask((task, level, seed) => {
+    if (task.mode !== 'timeline') return;
+    const finest = Math.min(...task.jumps);
+    assert.strictEqual(task.answer % finest, 0, where(task, seed));
+    assert.strictEqual(task.target - task.start, task.answer, where(task, seed));
+  });
+});
+
+test('level 6 always crosses an hour and is not on the five-minute grid', () => {
+  for (let seed = 0; seed < SEEDS; seed++) {
+    const task = E.generate(L.LEVELS[5], D.makeRng(seed), schedule);
+    const a = task.mode === 'timeline' ? task.start : task.show[0].t;
+    assert.ok(T.minutes(a) + task.answer >= 60, where(task, seed));
+    assert.notStrictEqual(task.answer % 5, 0, where(task, seed));
+  }
+});
+
+test('sums and differences are arithmetically right', () => {
+  forEachTask((task, level, seed) => {
+    if (task.kind.startsWith('add') && task.mode !== 'setclock') assert.strictEqual(T.add(task.start, task.duration), task.answer, where(task, seed));
+    if (task.kind.startsWith('subtract')) assert.strictEqual(T.add(task.end, -task.duration), task.answer, where(task, seed));
+  });
+});
+
+test('arithmetic stays within the school day', () => {
+  forEachTask((task, level, seed) => {
+    if (!task.kind.startsWith('add') && !task.kind.startsWith('subtract')) return;
+    const times = task.mode === 'setclock' ? [] : [task.answer, task.start === undefined ? task.end : task.start];
+    times.forEach((v) => assert.ok(v >= 480 && v < 1320, where(task, seed)));
+  });
+});
+
+test('level 8 always crosses the hour', () => {
+  for (let seed = 0; seed < SEEDS; seed++) {
+    const task = E.generate(L.LEVELS[7], D.makeRng(seed), schedule);
+    assert.ok(T.minutes(T.parse('00:00') + (task.start % 60)) + task.duration >= 60, where(task, seed));
+  }
+});
