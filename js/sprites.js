@@ -13,7 +13,7 @@
     cream: '#f6ecd2', white: '#fbf7ea', grey: '#8a8d91', greyLight: '#c4c7c9', greyDark: '#5f6368',
     wood: '#a9713a', woodDark: '#7a4d24', woodLight: '#c98f52', gold: '#f5c542', orange: '#f08820', pink: '#e8879c', lilac: '#8e6bb0',
     board: '#2f5d50', boardDark: '#244a40', chalk: '#eef2e6', chairGreen: '#a7cfa0', legGreen: '#3f7d5a', cork: '#b98a55',
-    night: '#0b1030', lcd: '#16282e', lcdOn: '#7df0c0', lcdOff: '#1f3d3f',
+    night: '#0b1030', lcd: '#16282e', lcdOn: '#7df0c0', lcdOff: '#1a3236',
   };
 
   const SKIN = ['#f2c8a0', '#d9a172', '#8a5a3b', '#f6d7b8'];

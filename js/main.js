@@ -9,6 +9,8 @@
     const q = new URLSearchParams(location.search);
     const out = {};
     if (q.has('time') && !Number.isNaN(T.parse(q.get('time')))) out.time = T.parse(q.get('time'));
+    if (q.has('sim')) out.sim = Number(q.get('sim')) || 0;
+    if (/^(minute|hour):-?\d+(,-?\d+)+$/.test(q.get('drag') || '')) out.drag = q.get('drag');
     return out;
   }
 
@@ -39,19 +41,74 @@
     });
   }
 
+  // ?drag=minute:0,90,180,360 sweeps a hand through those angles with real pointer events (dev only).
+  function scriptedDrag(stage, spec) {
+    const [hand, list] = spec.split(':');
+    const angles = list.split(',').map(Number);
+    const dial = stage.querySelector('[data-drag]');
+    const cx = Number(dial.dataset.cx);
+    const cy = Number(dial.dataset.cy);
+    const radius = Number(dial.dataset.r) * (hand === 'hour' ? 0.4 : 0.8);
+    const screen = stage.getScreenCTM();
+    const fire = (type, angle, target) => {
+      const a = (angle * Math.PI) / 180;
+      const p = new DOMPoint(cx + Math.sin(a) * radius, cy - Math.cos(a) * radius).matrixTransform(screen);
+      target.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: p.x, clientY: p.y, pointerId: 7, pointerType: 'touch', isPrimary: true }));
+    };
+    fire('pointerdown', angles[0], dial);
+    for (let i = 1; i < angles.length; i++) {
+      const from = angles[i - 1];
+      const n = Math.max(1, Math.ceil(Math.abs(angles[i] - from) / 20));
+      for (let k = 1; k <= n; k++) fire('pointermove', from + ((angles[i] - from) * k) / n, stage);
+    }
+    fire('pointerup', angles[angles.length - 1], stage);
+  }
+
   function boot(loaded) {
     const stage = document.getElementById('stage');
     if (loaded.errors) return showErrors(stage, loaded.errors);
     clear(stage);
     RL.sprites.init(stage);
+    const layers = {};
+    for (const name of ['bg', 'scene', 'fixed', 'fx', 'hud', 'overlay']) {
+      layers[name] = el('g', { id: name });
+      stage.appendChild(layers[name]);
+    }
     const debug = params();
-    const scene = RL.scene.create();
-    stage.appendChild(scene.node);
-    const t = debug.time !== undefined ? debug.time : T.parse('10:00');
-    const event = S.at(loaded.schedule, t);
-    scene.update(t, event, loaded.schedule.sun);
-    document.body.dataset.time = T.format(t);
-    document.body.dataset.scene = event.scene;
+    RL.input.init(stage, () => RL.audio.unlock());
+    const simulator = RL.simulator.create(layers, loaded.schedule, { time: debug.time });
+    RL.input.onAction((a) => simulator.handle(a));
+    const tick = (dt) => {
+      RL.input.flush();
+      simulator.update(dt);
+    };
+    if (debug.drag) scriptedDrag(stage, debug.drag);
+
+    // ?sim=N: simulate N seconds in fixed steps (headless browsers do not run animation frames).
+    if (debug.sim) {
+      let steps = Math.round(debug.sim * 30);
+      const chunk = () => {
+        try {
+          for (let i = 0; i < 300 && steps > 0; i++, steps--) tick(1 / 30);
+        } catch (e) {
+          document.body.dataset.error = e.stack;
+          steps = 0;
+        }
+        if (steps > 0) setTimeout(chunk, 0);
+        else document.body.dataset.simDone = '1';
+      };
+      setTimeout(chunk, 0);
+      return;
+    }
+
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      tick(dt);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
   }
 
   // Text is measured to lay out cards, so wait for the bundled fonts (with a timeout fallback).

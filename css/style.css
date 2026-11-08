@@ -55,6 +55,23 @@ body {
 #stage .chalk { font-family: var(--font-read); font-weight: 800; fill: #eef2e6; }
 .crisp { shape-rendering: crispEdges; }
 
+#stage .hint { fill: #fbf7ea; stroke: #1f2a44; stroke-width: 5px; paint-order: stroke; }
+#stage .event-line { font-weight: 700; fill: #385080; }
+
+/* ---------- interaction ---------- */
+.tappable { cursor: pointer; }
+.grab { cursor: grab; }
+.caret { opacity: 0; }
+.caret.on { animation: blink 1s steps(2, jump-none) infinite; }
+@keyframes blink { 0% { opacity: 1; } 100% { opacity: 0; } }
+.focus-ring { fill: none; stroke: #1f2a44; stroke-width: 5px; stroke-dasharray: 12 10; opacity: 0; }
+.selected > .button > .focus-ring, .button.selected > .focus-ring { opacity: 1; animation: march 0.8s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -44; } }
+
+/* ---------- the sign on its ropes: a stepped drop, in keeping with the art ---------- */
+.cartel { animation: drop 0.4s steps(6) both; }
+@keyframes drop { from { translate: 0 -240px; } to { translate: 0 0; } }
+
 /* Phones held upright: the game is landscape, suggest rotating (still playable). */
 #rotate {
   display: none;
