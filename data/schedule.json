@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "sun": { "sunrise": "07:45", "sunset": "18:30", "twilightMinutes": 40 },
+  "events": [
+    { "id": "midnight",         "time": "00:00", "scene": "dark",    "text": "El cole duerme" },
+    { "id": "earlyBirds",       "time": "07:30", "scene": "empty",   "text": "Abren los Primeros del cole" },
+    { "id": "arrival",          "time": "08:50", "scene": "arrival", "text": "Llegan los alumnos a clase" },
+    { "id": "morningLessons",   "time": "09:00", "scene": "lesson",  "text": "¡Empieza la clase!" },
+    { "id": "recess",           "time": "11:00", "scene": "recess",  "text": "¡Todos al recreo!" },
+    { "id": "afterRecess",      "time": "11:30", "scene": "lesson",  "text": "Volvemos a clase" },
+    { "id": "lunch",            "time": "12:30", "scene": "lunch",   "text": "Todos al comedor" },
+    { "id": "afternoonLessons", "time": "14:30", "scene": "lesson",  "text": "Clases de la tarde" },
+    { "id": "schoolOut",        "time": "16:00", "scene": "empty",   "text": "Fin de las clases: el aula se queda vacía" },
+    { "id": "nightfall",        "time": "20:00", "scene": "dark",    "text": "Cae la noche: el cole se queda a oscuras" }
+  ]
+}
