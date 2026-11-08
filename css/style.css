@@ -49,6 +49,12 @@ body {
   touch-action: none;
 }
 
+/* ---------- SVG text and art ---------- */
+#stage text { font-family: var(--font); fill: var(--ink); }
+#stage .reading { font-family: var(--font-read); font-weight: 800; }
+#stage .chalk { font-family: var(--font-read); font-weight: 800; fill: #eef2e6; }
+.crisp { shape-rendering: crispEdges; }
+
 /* Phones held upright: the game is landscape, suggest rotating (still playable). */
 #rotate {
   display: none;

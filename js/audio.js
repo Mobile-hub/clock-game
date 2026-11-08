@@ -61,7 +61,6 @@
     good() { tone(N(4), 0, 0.1, 'triangle', 0.25); tone(N(11), 0.07, 0.16, 'triangle', 0.25); },
     bad() { tone(N(-5), 0, 0.22, 'triangle', 0.25, N(-9)); },
     clear() { [0, 4, 7, 12, 7, 12, 16].forEach((s, i) => tone(N(s), i * 0.1, 0.18, 'triangle', 0.25)); },
-    bell() { [12, 7, 12, 7].forEach((s, i) => tone(N(s), i * 0.22, 0.4, 'sine', 0.2)); },
   };
 
   function play(name) {
