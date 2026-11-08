@@ -52,11 +52,11 @@
       return task;
     }
 
-    // Only a first-time correct answer fills the goal; a missed exercise must come back and be solved.
+    // A solved retry counts towards the goal too, so a child who keeps missing at the first try can still finish.
     answer(task, ok) {
       if (task === this.retryOut) this.retryOut = null;
       if (ok) {
-        if (!task.retry) this.correct++;
+        this.correct++;
         return;
       }
       if (!task.retry) this.misses++;
