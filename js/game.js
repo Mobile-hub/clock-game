@@ -23,7 +23,7 @@
     timers: [],
     clock: 0,
     debug: {},
-    cleared: new Set(),
+    progress: RL.storage.load(),
 
     init(layers, schedule, debug) {
       this.L = layers;
@@ -178,15 +178,15 @@
     // ---------- level map ----------
 
     isCleared(n) {
-      return this.cleared.has(n);
+      return RL.storage.levelInfo(this.progress, n).cleared;
     },
 
     starsOf(n) {
-      return this.isCleared(n) ? 1 : 0;
+      return RL.storage.levelInfo(this.progress, n).stars;
     },
 
     unlocked(n) {
-      return !!this.debug.all || RL.levels.isUnlocked(n, this.cleared);
+      return !!this.debug.all || RL.storage.isUnlocked(this.progress, n);
     },
 
     firstOpenLevel() {
@@ -373,7 +373,8 @@
       clear(this.L.fixed);
       this.mode = null;
       const stars = this.deck.stars;
-      this.cleared.add(this.level.n);
+      const unlockedNow = RL.storage.recordClear(this.progress, this.level.n, stars);
+      RL.storage.save(this.progress);
       audio.play('clear');
       fx.confetti(640, 200, 80, 500);
       this.setMood('happy');
@@ -383,12 +384,13 @@
         g({ transform: 'translate(640 310)' }, [0, 1, 2].map((i) => g({ transform: `translate(${(i - 1) * 120} ${i === 1 ? -14 : 0})` }, [SP.star(i < stars, 50)]))),
         this.label(640, 420, 30, this.deck.misses === 0 ? '¡Todo a la primera!' : 'Cada error te enseña algo. ¡Sigue así!'),
       ];
+      if (unlockedNow.length) nodes.push(this.label(640, 462, 26, `¡Has desbloqueado el nivel ${unlockedNow[0]}!`, { class: 'reading unlocked' }));
       const buttons = [
         { label: 'Retos', act: 'worlds', color: C.cream },
         { label: 'Repetir', act: 'retry', color: C.sky },
         { label: last ? '¡Final!' : 'Siguiente', act: 'next', color: C.leafLight },
       ];
-      this.showCard('¡Nivel superado!', nodes, buttons, { height: 420, titleScale: 5 });
+      this.showCard('¡Nivel superado!', nodes, buttons, { height: 440, titleScale: 5 });
     },
 
     nextLevel() {
