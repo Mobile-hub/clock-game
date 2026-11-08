@@ -267,7 +267,8 @@
       audio.play('click');
       this.levelIdx = idx;
       this.levelSel = idx;
-      this.level = LEVELS[idx];
+      this.level = this.debug.kind ? Object.assign({}, LEVELS[idx], { kinds: [this.debug.kind] }) : LEVELS[idx];
+      this.introAt = this.clock;
       this.deck = new D.Deck(this.level, this.rng, (used) => E.generate(this.level, this.rng, this.schedule, used));
       this.state = 'intro';
       this.resetLayers();
@@ -302,7 +303,7 @@
 
     spawn() {
       clear(this.L.fixed);
-      this.task = this.debug.task || this.deck.next();
+      this.task = this.deck.next();
       this.mode = RL.modes[this.task.mode].build(this.task);
       this.L.fixed.appendChild(this.mode.node);
       this.resolving = false;
@@ -499,7 +500,26 @@
       this.timers = this.timers.filter((t) => t.at > this.clock);
       due.forEach((t) => t.fn());
       if (this.sim) this.sim.update(dt);
+      if (this.debug.auto) this.autoplay();
       fx.update(dt);
+    },
+
+    // Debug bot (?auto=1): answers correctly; ?auto=miss misses every fifth exercise.
+    autoplay() {
+      if (this.state === 'intro' && this.clock - this.introAt > 0.5) {
+        this.beginPlay();
+      } else if (this.state === 'play' && !this.resolving && this.mode && this.clock - this.spawnedAt > 0.8) {
+        const miss = this.debug.auto === 'miss' && this.deck.served % 5 === 0 && !this.task.retry;
+        this.resolve(miss ? E.wrongAnswer(this.task) : this.mode.correctChoice());
+      } else if (this.state === 'hint' && this.clock > this.hintReadyAt + 0.3) {
+        this.dismissHint();
+      } else if (this.state === 'clear' && !this.autoNext) {
+        this.autoNext = true;
+        this.after(1, () => {
+          this.autoNext = false;
+          if (this.state === 'clear') this.nextLevel();
+        });
+      }
     },
 
     // Jump straight to a screen for screenshots: ?screen=sim|worlds|intro|play|hint|pause|clear|victory

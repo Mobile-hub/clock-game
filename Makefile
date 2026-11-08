@@ -1,4 +1,4 @@
-.PHONY: open serve test check dist clean help
+.PHONY: open serve test check verify shots dist clean help
 
 PORT ?= 8000
 JS := $(wildcard js/*.js) $(wildcard js/modes/*.js) $(wildcard tests/*.js)
@@ -10,6 +10,8 @@ help:
 	@echo "make serve  - serve the game on http://localhost:$(PORT)"
 	@echo "make test   - run unit tests (node)"
 	@echo "make check  - syntax-check every JS file (node)"
+	@echo "make verify - end-to-end checks in headless Chrome"
+	@echo "make shots  - retake the README screenshots"
 	@echo "make dist   - copy the publishable files to dist/"
 	@echo "make clean  - remove dist/"
 
@@ -26,6 +28,12 @@ test:
 
 check:
 	@for f in $(JS); do node --check $$f || exit 1; done && echo "syntax OK"
+
+verify:
+	sh tests/browser.sh verify
+
+shots:
+	sh tests/browser.sh shots
 
 dist: check test clean
 	mkdir -p dist

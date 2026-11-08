@@ -13,6 +13,9 @@
     if (q.has('seed')) out.seed = Number(q.get('seed')) || 0;
     if (q.has('screen')) out.screen = q.get('screen');
     if (q.has('all')) out.all = true;
+    if (['keys', 'taps', 'wrong'].includes(q.get('solve'))) out.solve = q.get('solve');
+    if (q.has('auto')) out.auto = q.get('auto') === 'miss' ? 'miss' : true;
+    if (RL.exercises.KINDS[q.get('kind')]) out.kind = q.get('kind');
     if (q.has('sim')) out.sim = Number(q.get('sim')) || 0;
     if (/^(minute|hour):-?\d+(,-?\d+)+$/.test(q.get('drag') || '')) out.drag = q.get('drag');
     return out;
@@ -45,29 +48,6 @@
     });
   }
 
-  // ?drag=minute:0,90,180,360 sweeps a hand through those angles with real pointer events (dev only).
-  function scriptedDrag(stage, spec) {
-    const [hand, list] = spec.split(':');
-    const angles = list.split(',').map(Number);
-    const dial = stage.querySelector('[data-drag]');
-    const cx = Number(dial.dataset.cx);
-    const cy = Number(dial.dataset.cy);
-    const radius = Number(dial.dataset.r) * (hand === 'hour' ? 0.4 : 0.8);
-    const screen = stage.getScreenCTM();
-    const fire = (type, angle, target) => {
-      const a = (angle * Math.PI) / 180;
-      const p = new DOMPoint(cx + Math.sin(a) * radius, cy - Math.cos(a) * radius).matrixTransform(screen);
-      target.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: p.x, clientY: p.y, pointerId: 7, pointerType: 'touch', isPrimary: true }));
-    };
-    fire('pointerdown', angles[0], dial);
-    for (let i = 1; i < angles.length; i++) {
-      const from = angles[i - 1];
-      const n = Math.max(1, Math.ceil(Math.abs(angles[i] - from) / 20));
-      for (let k = 1; k <= n; k++) fire('pointermove', from + ((angles[i] - from) * k) / n, stage);
-    }
-    fire('pointerup', angles[angles.length - 1], stage);
-  }
-
   function boot(loaded) {
     const stage = document.getElementById('stage');
     if (loaded.errors) return showErrors(stage, loaded.errors);
@@ -85,12 +65,13 @@
     game.showMenu();
     if (debug.screen) game.debugScreen(debug.screen);
     else if (debug.time !== undefined) game.openSimulator(debug.time);
-    else if (debug.level) game.startLevel(debug.level - 1);
+    else if (debug.level || debug.auto) game.startLevel((debug.level || 1) - 1);
     const tick = (dt) => {
       RL.input.flush();
       game.update(dt);
     };
-    if (debug.drag) scriptedDrag(stage, debug.drag);
+    if (debug.drag) RL.debug.drag(stage, debug.drag);
+    if (debug.solve && game.state === 'play') RL.debug.solve(stage, debug.solve);
 
     // ?sim=N: simulate N seconds in fixed steps (headless browsers do not run animation frames).
     if (debug.sim) {
