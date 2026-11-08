@@ -212,3 +212,26 @@ test('level 8 always crosses the hour', () => {
     assert.ok(T.minutes(T.parse('00:00') + (task.start % 60)) + task.duration >= 60, where(task, seed));
   }
 });
+
+test('every exercise is dressed with a school story and a known prop', () => {
+  const PROPS = ['radio', 'garden', 'lunch', 'patio', 'trip', 'race', 'book', 'choir'];
+  forEachTask((task, level, seed) => {
+    assert.ok(typeof task.story === 'string' && task.story.length > 5, where(task, seed));
+    assert.ok(PROPS.includes(task.prop), where(task, seed));
+  });
+});
+
+test('stories read their times from the timetable', () => {
+  const edited = JSON.parse(JSON.stringify(schedule));
+  edited.events.find((e) => e.id === 'lunch').start = T.parse('12:00');
+  const task = E.KINDS.lunchLength({ level: L.LEVELS[3], rng: D.makeRng(1), schedule: edited });
+  assert.strictEqual(task.answer, 150);
+  assert.strictEqual(task.show[0].t, T.parse('12:00'));
+});
+
+test('the time left of recess is always positive and inside it', () => {
+  for (let seed = 0; seed < SEEDS; seed++) {
+    const task = E.KINDS.recessLeft({ level: L.LEVELS[4], rng: D.makeRng(seed), schedule });
+    assert.ok(task.answer > 0 && task.answer <= 30, String(task.answer));
+  }
+});

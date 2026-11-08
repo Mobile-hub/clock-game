@@ -25,7 +25,7 @@
 
     const arcs = g({});
     const marker = g({}, [poly('-16,-44 16,-44 16,-16 0,0 -16,-16', C.gold, { stroke: C.ink, 'stroke-width': 3 })]);
-    const total = el('text', { x: 640, y: 462, class: 'reading', 'text-anchor': 'middle', style: 'font-size:32px' }, '');
+    const total = el('text', { x: 640, y: 484, class: 'reading', 'text-anchor': 'middle', style: 'font-size:32px' }, '');
 
     const flag = (x, label, colour) => g({ transform: `translate(${x} ${LINE_Y})` }, [
       rect(-3, -6, 6, 34, C.ink),

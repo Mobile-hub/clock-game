@@ -2,13 +2,14 @@
 // Wrong options come from the mistakes children really make, never from random noise. Pure.
 //
 // task: { key, kind, mode, prompt, show: [{ type: 'analog'|'digital', t, label }], answer, answerType: 'time'|'duration',
-//         mod, options: [{ label, value, clock }], step, start, explain: [lines] }
+//         mod, options: [{ label, value, clock }], step, start, explain: [lines], story, prop }
 // Works in the browser (window.RL.exercises) and in node (module.exports) for tests.
 (function (root) {
   const inNode = typeof module !== 'undefined' && module.exports;
   const T = inNode ? require('./timemath.js') : root.RL.timemath;
   const Say = inNode ? require('./spoken.js') : root.RL.spoken;
   const { shuffle } = inNode ? require('./deck.js') : root.RL.deck;
+  const Sch = inNode ? require('./schedule.js') : root.RL.schedule;
 
   const OPTION_COUNT = 4;
   const HANDS_NOTE = 'La aguja corta señala la hora y la larga, los minutos.';
@@ -270,7 +271,7 @@
     addSetClock(ctx) {
       const { a, b, d } = randomInterval(ctx);
       return {
-        mode: 'setclock', answer: dialTime(b), answerType: 'time', mod: T.HALF_DAY, step: ctx.level.step, start: dialTime(a), duration: d,
+        mode: 'setclock', answer: dialTime(b), answerType: 'time', mod: T.HALF_DAY, step: ctx.level.step, start: dialTime(a), detailStart: a, duration: d,
         prompt: `Empieza a las ${T.format(a)} y dura ${Say.duration(d)}. Pon el reloj en la hora de terminar.`,
         show: [],
         explain: explainSum(a, d, b),
@@ -310,6 +311,75 @@
     },
   });
 
+  // Moments of the real school day, read from the timetable: edit data/schedule.json and these follow.
+  Object.assign(KINDS, {
+    lunchLength(ctx) {
+      const a = Sch.startOf(ctx.schedule, 'lunch');
+      const d = Sch.durationOf(ctx.schedule, 'lunch');
+      return Object.assign(intervalTask(ctx, a, a + d, d, '¿Cuánto tiempo hay para comer?', ['Comedor', 'Clase']), {
+        story: 'Es la hora de la mesa restaurante en el comedor.', prop: 'lunch',
+      });
+    },
+    recessLength(ctx) {
+      const a = Sch.startOf(ctx.schedule, 'recess');
+      const d = Sch.durationOf(ctx.schedule, 'recess');
+      return Object.assign(intervalTask(ctx, a, a + d, d, '¿Cuánto dura el recreo?', ['Sale', 'Vuelve']), {
+        story: 'Suena el timbre: ¡al patio!', prop: 'patio',
+      });
+    },
+    morningLength(ctx) {
+      const a = Sch.startOf(ctx.schedule, 'morningLessons');
+      const d = Sch.durationOf(ctx.schedule, 'morningLessons');
+      return Object.assign(intervalTask(ctx, a, a + d, d, '¿Cuánto tiempo hay de clase hasta el recreo?', ['Clase', 'Recreo']), {
+        story: 'Por la mañana empezamos con Lengua y Mates.', prop: 'book',
+      });
+    },
+    recessLeft(ctx) {
+      const start = Sch.startOf(ctx.schedule, 'recess');
+      const length = Sch.durationOf(ctx.schedule, 'recess');
+      const offset = length >= 10 ? 5 * (1 + intBelow(Math.floor((length - 5) / 5), ctx.rng)) : 0;
+      const a = start + offset;
+      const b = start + length;
+      return Object.assign(intervalTask(ctx, a, b, b - a, '¿Cuánto falta para volver a clase?', ['Ahora', 'A clase']), {
+        story: `Estamos jugando a la comba en el patio y son las ${T.format(a)}.`, prop: 'patio',
+      });
+    },
+    afternoonEnd(ctx) {
+      const a = Sch.startOf(ctx.schedule, 'afternoonLessons');
+      const d = Sch.durationOf(ctx.schedule, 'afternoonLessons');
+      const b = a + d;
+      return {
+        mode: 'choice', answer: b, answerType: 'time', mod: T.DAY, start: a, duration: d,
+        story: `La clase de la tarde empieza a las ${T.format(a)} y dura ${Say.duration(d)}.`,
+        prompt: '¿A qué hora se acaba el cole?', prop: 'book',
+        show: [{ type: 'digital', t: a }],
+        options: timeOptions(b, ctx, T.DAY, T.format, null, [noCarry(a, d)]),
+        explain: explainSum(a, d, b),
+      };
+    },
+  });
+
+  // The school-life dressing of each exercise: who asks and why. Kinds above that come from the timetable bring their own.
+  const STORIES = {
+    readPhrase: () => ({ prop: 'radio', story: '¡Estás en antena en Radio Suanzes!', prompt: 'Di a quienes nos escuchan qué hora es.' }),
+    readDigital: () => ({ prop: 'radio', story: 'En el estudio de Radio Suanzes solo hay un reloj digital.', prompt: '¿Cuál marca la misma hora que el de agujas?' }),
+    digitalToAnalog: () => ({ prop: 'book', story: 'La biblioteca del cole tiene un reloj digital en la puerta.', prompt: '¿Qué reloj de agujas marca esa misma hora?' }),
+    setClock: (task) => ({ prop: 'garden', story: `Hay que regar el huerto a ${Say.clockPhrase(task.answer)}.`, prompt: 'Mueve las agujas hasta esa hora y comprueba.' }),
+    phrase24: (task) => ({ prop: 'choir', story: `El coro del cole ensaya a las ${T.format(task.answer)}.`, prompt: '¿Cómo se dice esa hora?' }),
+    type24: (task) => ({ prop: 'book', story: `La lectura del Día del Libro empieza a ${Say.fullPhrase(task.answer)}.`, prompt: 'Escríbelo en formato de 24 horas.' }),
+    elapsedPair: (task, ctx) => pick([
+      { prop: 'patio', story: 'Hoy hay partido en el patio.', prompt: '¿Cuánto tiempo dura?' },
+      { prop: 'choir', story: 'El coro prepara la fiesta de Santa Cecilia.', prompt: '¿Cuánto tiempo dura el ensayo?' },
+      { prop: 'garden', story: 'Tu grupo trabaja en el huerto del cole.', prompt: '¿Cuánto tiempo estáis plantando?' },
+    ], ctx.rng),
+    elapsedTimeline: (task) => ({ prop: 'book', story: `El cuentacuentos de la biblioteca empieza a las ${T.format(task.start)}.`, prompt: `Salta por la línea del tiempo hasta las ${T.format(task.target)}.` }),
+    addChoice: (task) => ({ prop: 'trip', story: `El autobús al planetario sale a las ${T.format(task.start)} y el viaje dura ${Say.duration(task.duration)}.`, prompt: '¿A qué hora llega?' }),
+    addSetClock: (task) => ({ prop: 'race', story: `La carrera del cole empieza a las ${T.format(task.detailStart)} y dura ${Say.duration(task.duration)}.`, prompt: 'Pon el reloj en la hora de llegada.' }),
+    addDigital: (task) => ({ prop: 'choir', story: `El ensayo del coro empieza a las ${T.format(task.start)} y dura ${Say.duration(task.duration)}.`, prompt: 'Escribe a qué hora termina.' }),
+    subtractChoice: (task) => ({ prop: 'trip', story: `El autobús llega al planetario a las ${T.format(task.end)} tras ${Say.duration(task.duration)} de viaje.`, prompt: '¿A qué hora salió?' }),
+    subtractDigital: (task) => ({ prop: 'race', story: `La carrera empieza a las ${T.format(task.end)} y hay que calentar ${Say.duration(task.duration)} antes.`, prompt: 'Escribe a qué hora hay que empezar a calentar.' }),
+  };
+
   // Picks a kind from the level and avoids repeating an exercise already served in this level.
   function generate(level, rng, schedule, used) {
     const ctx = { level, rng, schedule };
@@ -318,6 +388,7 @@
       const kind = level.kinds[intBelow(level.kinds.length, rng)];
       task = KINDS[kind](ctx);
       task.kind = kind;
+      if (STORIES[kind]) Object.assign(task, STORIES[kind](task, ctx));
       task.key = `${kind}:${task.answer}:${task.detail || ''}`;
       if (!used || !used.has(task.key)) break;
     }

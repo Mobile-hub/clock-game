@@ -74,7 +74,7 @@
     clear(stage);
     RL.sprites.init(stage);
     const layers = {};
-    for (const name of ['bg', 'scene', 'fixed', 'fx', 'hud', 'overlay']) {
+    for (const name of ['bg', 'scene', 'fixed', 'hud', 'overlay', 'fx']) {
       layers[name] = el('g', { id: name });
       stage.appendChild(layers[name]);
     }

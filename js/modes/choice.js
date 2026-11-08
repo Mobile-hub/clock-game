@@ -24,8 +24,8 @@
   }
 
   function clockOption(option, i) {
-    const x = 760 + (i % 2) * 280;
-    const y = 325 + Math.floor(i / 2) * 215;
+    const x = 740 + (i % 2) * 250;
+    const y = 318 + Math.floor(i / 2) * 200;
     return g({ 'data-act': 'opt', 'data-arg': i, class: 'tappable option-clock' }, [
       rect(x - 118, y - 106, 236, 212, 'transparent'),
       CF.analog({ x, y, R: 88, t: option.value }).node,

@@ -74,6 +74,7 @@ body {
 
 /* ---------- feedback ---------- */
 #stage .soft { opacity: 0.75; }
+#stage .story { font-weight: 700; fill: #385080; }
 #stage .key-badge { font-weight: 700; opacity: 0.6; }
 #stage .lcd-text { font: 800 60px var(--font-read); fill: #7df0c0; letter-spacing: 6px; }
 #stage .world-name { fill: #1f2a44; }

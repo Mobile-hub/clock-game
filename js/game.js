@@ -275,6 +275,8 @@
       this.L.bg.appendChild(SP.backdrop(world.theme));
       this.mascot = g({ transform: `translate(${MASCOT.x} ${MASCOT.y}) scale(${MASCOT.scale})` });
       this.L.scene.appendChild(this.mascot);
+      this.prop = g({ transform: 'translate(1168 700)', class: 'crisp' });
+      this.L.scene.appendChild(this.prop);
       this.setMood('happy');
       this.task = null;
       this.renderHud();
@@ -306,6 +308,8 @@
       this.resolving = false;
       this.spawnedAt = this.clock;
       this.setMood('happy');
+      clear(this.prop);
+      if (this.task.prop) this.prop.appendChild(SP.PROP[this.task.prop]());
       this.renderHud();
     },
 
@@ -338,8 +342,8 @@
       const nodes = [];
       const isTime = task.answerType === 'time';
       const textX = isTime ? 760 : 640;
-      if (isTime) nodes.push(CF.analog({ x: 360, y: 330, R: 105, t: task.answer }).node);
-      let y = 240;
+      if (isTime) nodes.push(CF.analog({ x: 360, y: 350, R: 105, t: task.answer }).node);
+      let y = 256;
       for (const line of task.explain) {
         for (const part of wrap(line, isTime ? 34 : 54)) {
           nodes.push(this.label(textX, y, 30, part));
@@ -347,8 +351,8 @@
         }
         y += 10;
       }
-      nodes.push(this.label(640, 482, 24, 'Este ejercicio volverá a salir más adelante.', { class: 'reading soft' }));
-      this.showCard('¡Casi! Fíjate', nodes, [{ label: 'Seguir', act: 'hintdone', color: C.leafLight }], { height: 470 });
+      nodes.push(this.label(640, 500, 24, 'Este ejercicio volverá a salir más adelante.', { class: 'reading soft' }));
+      this.showCard('¡Casi! Fíjate', nodes, [{ label: 'Seguir', act: 'hintdone', color: C.leafLight }], { height: 520 });
     },
 
     hintInput(a) {
@@ -433,10 +437,17 @@
       for (let i = 0; i < goal; i++) h.appendChild(rect(600 + i * 42, 26, 34, 30, i < done ? C.leaf : C.white, { stroke: C.ink, 'stroke-width': 3 }));
       h.appendChild(this.tappable(1172, 40, 'pause', '', [el('circle', { r: 28, fill: C.cream, stroke: C.ink, 'stroke-width': 4 }), rect(-11, -12, 8, 24, C.ink), rect(3, -12, 8, 24, C.ink)]));
       if (!this.task) return;
-      const promptLines = wrap(this.task.prompt, 62);
-      h.appendChild(rect(46, 95, 1200, 122, C.ink));
-      h.appendChild(rect(40, 88, 1200, 122, C.white, { stroke: C.ink, 'stroke-width': 4 }));
-      promptLines.slice(0, 2).forEach((line, i) => h.appendChild(this.label(640, 142 + i * 44, 34, line)));
+      h.appendChild(rect(46, 91, 1200, 128, C.ink));
+      h.appendChild(rect(40, 84, 1200, 128, C.white, { stroke: C.ink, 'stroke-width': 4 }));
+      const promptLines = wrap(this.task.prompt, 66).slice(0, 2);
+      let y = 128;
+      if (this.task.story) {
+        h.appendChild(this.label(640, y, 26, this.task.story, { class: 'reading story' }));
+        y += 40;
+      } else if (promptLines.length === 1) {
+        y = 160;
+      }
+      promptLines.forEach((line, i) => h.appendChild(this.label(640, y + i * 36, 30, line)));
       if (this.mode && this.mode.keysHelp && this.state !== 'hint') h.appendChild(this.label(700, 706, 22, this.mode.keysHelp, { class: 'reading hint' }));
     },
 
