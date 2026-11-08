@@ -38,7 +38,8 @@
     }
 
     next() {
-      const dueIdx = this.retries.findIndex((r) => r.due <= this.served);
+      // Once the goal is reached only the pending retries remain, so they are served straight away.
+      const dueIdx = this.retries.findIndex((r) => r.due <= this.served || this.correct >= this.level.goal);
       let task;
       if (dueIdx >= 0) {
         task = this.retries.splice(dueIdx, 1)[0].task;

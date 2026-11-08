@@ -9,6 +9,10 @@
     const q = new URLSearchParams(location.search);
     const out = {};
     if (q.has('time') && !Number.isNaN(T.parse(q.get('time')))) out.time = T.parse(q.get('time'));
+    if (q.has('level')) out.level = Math.max(1, Math.min(RL.levels.LEVELS.length, Number(q.get('level')) || 1));
+    if (q.has('seed')) out.seed = Number(q.get('seed')) || 0;
+    if (q.has('screen')) out.screen = q.get('screen');
+    if (q.has('all')) out.all = true;
     if (q.has('sim')) out.sim = Number(q.get('sim')) || 0;
     if (/^(minute|hour):-?\d+(,-?\d+)+$/.test(q.get('drag') || '')) out.drag = q.get('drag');
     return out;
@@ -76,11 +80,15 @@
     }
     const debug = params();
     RL.input.init(stage, () => RL.audio.unlock());
-    const simulator = RL.simulator.create(layers, loaded.schedule, { time: debug.time });
-    RL.input.onAction((a) => simulator.handle(a));
+    const game = RL.game;
+    game.init(layers, loaded.schedule, debug);
+    game.showMenu();
+    if (debug.screen) game.debugScreen(debug.screen);
+    else if (debug.time !== undefined) game.openSimulator(debug.time);
+    else if (debug.level) game.startLevel(debug.level - 1);
     const tick = (dt) => {
       RL.input.flush();
-      simulator.update(dt);
+      game.update(dt);
     };
     if (debug.drag) scriptedDrag(stage, debug.drag);
 
@@ -109,6 +117,15 @@
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        game.pause();
+        RL.audio.suspend();
+      } else {
+        RL.audio.unlock();
+      }
+    });
   }
 
   // Text is measured to lay out cards, so wait for the bundled fonts (with a timeout fallback).

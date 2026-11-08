@@ -72,6 +72,17 @@ body {
 .cartel { animation: drop 0.4s steps(6) both; }
 @keyframes drop { from { translate: 0 -240px; } to { translate: 0 0; } }
 
+/* ---------- feedback ---------- */
+#stage .soft { opacity: 0.75; }
+#stage .key-badge { font-weight: 700; opacity: 0.6; }
+#stage .lcd-text { font: 800 60px var(--font-read); fill: #7df0c0; letter-spacing: 6px; }
+#stage .world-name { fill: #1f2a44; }
+#stage .float-text { font-family: var(--font-read); font-weight: 900; stroke: #fff; stroke-width: 8px; paint-order: stroke; }
+.good { animation: jump 0.4s steps(5); }
+@keyframes jump { 50% { translate: 0 -16px; } }
+.wrong { animation: nope 0.4s steps(6); }
+@keyframes nope { 20%, 60% { translate: -10px 0; } 40%, 80% { translate: 10px 0; } }
+
 /* Phones held upright: the game is landscape, suggest rotating (still playable). */
 #rotate {
   display: none;

@@ -306,7 +306,7 @@
 
   // The school seen from the front, for the menu: brick, white band, red canopy and railings, flags and a big tree.
   function facade() {
-    const parts = [skyBands(C.cyan, C.sky, 320)];
+    const parts = [skyBands(C.cyan, C.sky, 560)];
     parts.push(poly('140,92 240,92 270,74 330,74 360,92 430,92 400,112 170,112', C.white));
     parts.push(poly('830,62 910,62 940,44 1000,44 1034,62 1130,62 1090,84 860,84', C.white));
     parts.push(brickWall(70, 250, 1140, 300));
