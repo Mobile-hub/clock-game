@@ -119,7 +119,6 @@ shots() {
   shot simulator-night 'time=21:40&sim=1'
   shot gameplay-1 'level=2&kind=readPhrase&screen=play&seed=4&sim=1'
   shot gameplay-2 'level=5&kind=elapsedTimeline&screen=play&seed=3&sim=1'
-  shot gameplay-3 'level=1&kind=setClock&screen=play&seed=2&sim=1'
   echo 'screenshots/ updated'
 }
 
