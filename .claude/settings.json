@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(git:*)",
+      "Bash(make:*)",
+      "Bash(node:*)",
+      "Bash(python3:*)",
+      "Bash(xdg-open:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(sort:*)",
+      "Bash(diff:*)",
+      "Bash(which:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(timeout:*)",
+      "Bash(chromium:*)",
+      "Bash(chromium-browser:*)",
+      "Bash(google-chrome:*)",
+      "Edit(./**)",
+      "Write(./**)",
+      "Read(./**)",
+      "Read(../multiply/**)",
+      "Read(../clasifica-express/**)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git remote:*)",
+      "Bash(gh:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(rsync:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(sudo:*)"
+    ]
+  }
+}
